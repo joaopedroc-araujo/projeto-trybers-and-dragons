@@ -1,6 +1,6 @@
 import Archetype, { Mage } from './Archetypes';
 import Energy from './Energy';
-import Fighter from './Fighter';
+import Fighter, { SimpleFighter } from './Fighter';
 import Race, { Elf } from './Races';
 import getRandomInt from './utils';
 
@@ -28,68 +28,70 @@ export default class Character implements Fighter {
     };
   }
   
-  get race() {
-    return this._race;
+  get maxLifePoints(): number {
+    return this._maxLifePoints;
   }
 
-  get archetype() {
-    return this._archetype;
-  }
-
-  get lifePoints() {
+  get lifePoints(): number {
     return this._lifePoints;
   }
 
-  get strength() {
+  get strength(): number {
     return this._strength;
   }
 
-  get defense() {
+  get defense(): number {
     return this._defense;
   }
 
-  get dexterity() {
+  get dexterity(): number {
     return this._dexterity;
   }
 
-  get energy() {
+  get energy(): Energy {
     return { ...this._energy };
   }
 
-  receiveDamage(attackPoints: number) {
+  get race(): Race {
+    return this._race;
+  }
+
+  get archetype(): Archetype {
+    return this._archetype;
+  }
+
+  receiveDamage(attackPoints: number): number {
     const damage = attackPoints - this._defense;
 
-    if (damage > 0) {
-      this._lifePoints -= damage;
-    } else {
+    if (damage <= 0) {
       this._lifePoints -= 1;
+      return this._lifePoints;
     }
 
-    if (this._lifePoints <= 0) {
-      this._lifePoints = -1;
-    }
+    this._lifePoints -= damage;
+
+    if (this._lifePoints <= 0) this._lifePoints = -1;
 
     return this._lifePoints;
   }
 
-  attack(enemy: Fighter) {
-    enemy.receiveDamage(this._strength);
+  attack(enemy: Fighter | SimpleFighter): void {
+    const damage = this._strength;
+
+    enemy.receiveDamage(damage);
   }
 
-  levelUp() {
-    const increment = getRandomInt(1, 10);
-    
-    if (this._maxLifePoints + increment > this._race.maxLifePoints) {
-      this._maxLifePoints = this._race.maxLifePoints;
-    } else {
-      this._maxLifePoints += increment;
-    }
-    
-    this._strength += increment;
-    this._dexterity += increment;
-    this._defense += increment;
+  levelUp(): void {
+    this._maxLifePoints += getRandomInt(1, 10);
+    this._strength += getRandomInt(1, 10);
+    this._defense += getRandomInt(1, 10);
+    this._dexterity += getRandomInt(1, 10);
 
     this._energy.amount = 10;
+
+    if (this._maxLifePoints > this._race.maxLifePoints) {
+      this._maxLifePoints = this._race.maxLifePoints;
+    }
 
     this._lifePoints = this._maxLifePoints;
   }
